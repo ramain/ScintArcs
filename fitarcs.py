@@ -16,7 +16,7 @@ from dynspectools import read_psrflux
 from ScintArcs import compute_nutSS, compute_staufD, ParabolicFitter, LineFinder
 
 def signal_handler(sig, frame):
-    print('You pressed Ctrl+C!')
+    print('Exiting, writing results in {0}'.format(outfile))
     results.close()
     sys.exit(0)
 
@@ -31,11 +31,12 @@ DS : 2d over time and frequency in this order
 
 parser = argparse.ArgumentParser(description='Run interactive arc fitter on directory of dynspecs')
 parser.add_argument("-fpath", type=str)
+parser.add_argument("-fittype", nargs='?', default='parabola', type=str)
+parser.add_argument("-fref", default=1400., type=float)
 parser.add_argument("-ylim", default=1.0, type=float)
 parser.add_argument("-xlim", default=1.0, type=float)
-parser.add_argument("-fit", nargs='?', default='parabola', type=str)
-parser.add_argument("-fref", default=1400., type=float)
 parser.add_argument("-npad", default=0, type=int)
+parser.add_argument("-tmin", default=0., type=float)
 parser.add_argument("-vm", default=3., type=float)
 parser.add_argument("-outfile", default='curv.txt', type=str)
 
@@ -45,7 +46,8 @@ npad = a.npad
 ylim = a.ylim
 xlim = a.xlim
 fref = a.fref
-fittype = a.fit
+tmin = a.tmin
+fittype = a.fittype
 vm = a.vm
 outfile = a.outfile
 lam = c / (fref*u.MHz)
@@ -63,6 +65,11 @@ for fn in dspecfiles:
     dt = (t[2] - t[1])*u.s
     df = (F[1] - F[0]).value
     bw = (max(F.value) - min(F.value)) + df
+
+    Tobs = t[-1] + dt.value
+    if Tobs < tmin:
+        print("Skipping {0}, Tobs of {1} shorter than Tmin of {2}".format(fn, Tobs, tmin))
+        continue
 
     nu0 = fref*1e+6 #or np.mean(nu)
     if npad:
