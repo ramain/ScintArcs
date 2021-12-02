@@ -297,7 +297,7 @@ def ParabolicFitter(fD,tau,SS,**kwargs):
     ymin = 0.6
     xmax = 0.95
     ymax = 0.95
-    nrows = 5
+    nrows = 6
     ncols = 1
     yspace = 0.02
     xspace = 0.02
@@ -308,13 +308,18 @@ def ParabolicFitter(fD,tau,SS,**kwargs):
     xpos = [xmin+i*(xwidth+xspace) for i in range(ncols)]
     ypos = [ymin+i*(ywidth+yspace) for i in range(nrows)]
     # - place widgets
-    button_fit = mpl.widgets.Button(plt.axes([xpos[0],ypos[4],xwidth,ywidth]), "fit")
-    button_save = mpl.widgets.Button(plt.axes([xpos[0],ypos[3],xwidth,ywidth]), "save")
-    button_undo = mpl.widgets.Button(plt.axes([xpos[0],ypos[2],xwidth,ywidth]), "undo")
+    button_fit = mpl.widgets.Button(plt.axes([xpos[0],ypos[5],xwidth,ywidth]), "fit")
+    button_save = mpl.widgets.Button(plt.axes([xpos[0],ypos[4],xwidth,ywidth]), "save")
+    button_skip = mpl.widgets.Button(plt.axes([xpos[0],ypos[2],xwidth,ywidth]), "skip")
+    button_undo = mpl.widgets.Button(plt.axes([xpos[0],ypos[3],xwidth,ywidth]), "undo")
     slider_fD_err = mpl.widgets.Slider(plt.axes([xpos[0],ypos[1],xfullwidth,ywidth]),r'$\sigma(f_\mathrm{D})$',0.,SS.sigma_fD_max,valinit=0.)
     slider_tau_err = mpl.widgets.Slider(plt.axes([xpos[0],ypos[0],xfullwidth,ywidth]),r'$\sigma(\tau)$',0.,SS.sigma_tau_max,valinit=0.)
     # - define functions of widgets
     def fct_button_save(event):
+        plt.close()
+    def fct_button_skip(event):
+        errdots.eta = 0
+        errdots.eta_err = 0
         plt.close()
     def update_error(event):
         errdots.update_error(slider_fD_err.val,slider_tau_err.val)
@@ -322,6 +327,7 @@ def ParabolicFitter(fD,tau,SS,**kwargs):
     figure.canvas.mpl_connect('button_press_event', errdots.onclick)
     button_fit.on_clicked(errdots.fit)
     button_save.on_clicked(fct_button_save)
+    button_skip.on_clicked(fct_button_skip)
     button_undo.on_clicked(errdots.undo)
     slider_fD_err.on_changed(update_error)
     slider_tau_err.on_changed(update_error)
@@ -380,6 +386,7 @@ def LineFinder(stau, fD, staufD,**kwargs):
     slider_zeta = mpl.widgets.Slider(plt.axes([0.12,0.02,0.7,0.03]),r'$\zeta$',0.0,zeta_max,valinit=zeta_init)
     slider_err = mpl.widgets.Slider(plt.axes([0.53,0.07,0.4,0.03]),r'$\sigma_{\zeta}$ %',0.0,50.0,valinit=0.0)
     button_save = mpl.widgets.Button(plt.axes([0.12,0.07,0.1,0.03]), "save")
+    button_skip = mpl.widgets.Button(plt.axes([0.24,0.07,0.1,0.03]), "skip")
     y_fit = np.linspace(ymin,ymax,num=201,endpoint=True)
     x_u = np.abs(y_fit)*2.*nu0*(slider_zeta.val*(1.+slider_err.val/100.))
     x_d = np.abs(y_fit)*2.*nu0*(slider_zeta.val*(1.-slider_err.val/100.))
@@ -394,10 +401,16 @@ def LineFinder(stau, fD, staufD,**kwargs):
         figure.canvas.draw_idle()
     def fct_button_save(event):
         plt.close()
+    def fct_button_skip(event):
+        plt.close()
+        eta = 0
+        etaerr = 0
+        return eta, etaerr
     
     slider_zeta.on_changed(update_zeta)
     slider_err.on_changed(update_zeta)
     button_save.on_clicked(fct_button_save)
+    button_skip.on_clicked(fct_button_skip)
     plt.show()
     
     return slider_zeta.val,slider_zeta.val*slider_err.val/100.
