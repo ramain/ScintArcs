@@ -123,6 +123,6 @@ for fn in dspecfiles:
     lamcurverr = (eta_err*u.s**3* fref*u.MHz / lam).to(u.m**-1 * u.mHz**-2)
     results.write('{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}\n'.format(
         fn, T[0].mjd, fref, bw, t[-1], dt.value, df, lamcurv.value, lamcurverr.value))
-
+    results.flush()
 
 results.close()
